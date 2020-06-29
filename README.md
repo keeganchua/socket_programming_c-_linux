@@ -1,1 +1,1 @@
-this repo is written in c++ for socket programming in linux which includes base code of the server & client and the edited code to hold messaging transmitting & receiving between 3 machines (servers) and 2 applications (clients). 
+this repo is written in c++ for socket programming in linux which includes the base code of the server & client and the edited code to hold message transmitting & receiving between 3 machines (servers) and 2 applications (clients). 
