@@ -31,7 +31,7 @@ return 1;}
 //while loop
 char buf[4096];
 string userInput;
-
+do {
 //enter lines of text
 cout << "> ";
 getline(cin, userInput);
@@ -47,7 +47,7 @@ memset(buf, 0, 4096);
 int bytesReceived = recv(sock, buf, 4096, 0);
 
 //display response
-cout <, "SERVER> " << string(buf, bytesReceived) << "\r\n";
+cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
 } while(true);
 
 //close the socket
