@@ -11,12 +11,12 @@ using namespace std;
 
 int main()
 {
-    // Differentiate application number (available app: 1 & 2)
-    int appNum = 1; // Current app number: 1
-    int machineNum = 1; // Current machine number: 1
-    int machineCNum; // Choice of machine to connect to
+    // identify current site & app number and choice of site to connect to
+    int appNum = 1; // current app number: 1
+    int machineNum = 1; // current machine number: 1
+    int machineCNum; // choice of machine to connect to
 
-    // User input to connect to which machine
+    // user input to connect to which machine
     do {
     cout << "Currently you're in application " << appNum << ", site " << machineNum << ".\nEnter site number you want to connect to: ";
     cin >> machineCNum;
@@ -28,20 +28,25 @@ int main()
     }
     } while (true);
 
-    //	Create a socket
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == -1)
-    {
-        return 1;
+    //	create a socket
+    int app = socket(AF_INET, SOCK_STREAM, 0);
+    
+    // bind socket to a port based on app number
+    sockaddr_in appAddr;
+    appAddr.sin_family = AF_INET;
+    if (appNum == 1){
+        appAddr.sin_port = htons(1234);
+    } else {
+        appAddr.sin_port = htons(5678);
     }
-
-    //	Create a hint structure for the server we're connecting with
-    int port = 54000;
+    inet_pton(AF_INET, "127.0.0.1", &appAddr.sin_addr);
+    bind(app, (sockaddr*)&appAddr, sizeof(appAddr));
+    
+    //	create a hint structure for the local middleware to connect with from the app
     string ipAddress;
-
-    if (machineCNum == 1){
+    if (machineNum == 1){
         ipAddress = "192.168.0.115";
-    } else if (machineCNum == 2){
+    } else if (machineNum == 2){
         ipAddress = "192.168.0.114";
     } else {
         cout << "This is Machine 3 please change the machineNum!" << endl;
@@ -49,17 +54,13 @@ int main()
 
     sockaddr_in hint;
     hint.sin_family = AF_INET;
-    hint.sin_port = htons(port);
+    hint.sin_port = htons(54000);
     inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);
 
-    //	Connect to the server on the socket
-    int connectRes = connect(sock, (sockaddr*)&hint, sizeof(hint));
-    if (connectRes == -1)
-    {
-        return 1;
-    }
-
-    //	While loop:
+    //	connect to the local middleware from the app
+    connect(sock, (sockaddr*)&hint, sizeof(hint));
+    
+    //	while loop:
     char buf[4096];
     string userInput;
 
@@ -68,7 +69,7 @@ int main()
         //		Enter lines of text
         cout << "> ";
         getline(cin, userInput);
-
+/////////////////////////////////////////ADD application layer/structure before sending include appNum, machineNum, machineCNum + userInput
         //		Send to server
         int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
         if (sendRes == -1)
