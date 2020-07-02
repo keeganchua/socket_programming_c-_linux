@@ -11,22 +11,9 @@ using namespace std;
 
 int main()
 {
-    // identify current site & app number and choice of site to connect to
+    // identify current site & app number 
     int appNum = 1; // current app number: 1
     int machineNum = 1; // current machine number: 1
-    int machineCNum; // choice of machine to connect to
-
-    // user input to connect to which machine
-    do {
-    cout << "Currently you're in application " << appNum << ", site " << machineNum << ".\nEnter site number you want to connect to: ";
-    cin >> machineCNum;
-    if (machineCNum == machineNum){
-        cerr << "Error: You cannot send to the machine you're in!" << endl;
-        continue;
-    }   else {
-        break;
-    }
-    } while (true);
 
     //	create a socket
     int app = socket(AF_INET, SOCK_STREAM, 0);
@@ -42,6 +29,15 @@ int main()
     inet_pton(AF_INET, "127.0.0.1", &appAddr.sin_addr);
     bind(app, (sockaddr*)&appAddr, sizeof(appAddr));
     
+    // choose operation of socket
+    int modeNum = 0; // default socket is off & waiting for a response
+    do {
+    cout << "Enter 1 to send a message, 2 to turn on socket, else 3 to turn off socket & return to here again: ";
+    cin >> modeNum;
+    if (modeNum == 0){
+        continue;
+        } else if (modeNum == 1){ 
+        
     //	create a hint structure for the local middleware to connect with from the app
     string ipAddress;
     if (machineNum == 1){
@@ -64,11 +60,14 @@ int main()
     char buf[4096];
     string userInput;
 
-
     do {
         //		Enter lines of text
         cout << "> ";
         getline(cin, userInput);
+        
+        if (userInput == "exit"){
+        break;
+        } else {
 /////////////////////////////////////////ADD application layer/structure before sending include appNum, machineNum, machineCNum + userInput
         //		Send to server
         int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
@@ -89,9 +88,15 @@ int main()
         {
             //		Display response
             cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
+        } 
         }
     } while(true);
-
+        continue;
+        } else if (modeNum == 2){
+        LISTEN
+        }
+    } while (true);
+    
     //	Close the socket
     close(sock);
 
