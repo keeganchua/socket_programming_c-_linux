@@ -32,7 +32,7 @@ int main()
     // choose operation of socket
     int modeNum = 0; // default socket is off & waiting for a response
     do {
-    cout << "Enter 1 to send a message, 2 to turn on socket, else 3 to turn off socket & return to here again: ";
+    cout << "Enter 1 to send a message, 2 to turn on socket, else 0 to turn off socket & return to here again: ";
     cin >> modeNum;
     if (modeNum == 0){
         continue;
