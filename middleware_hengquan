@@ -24,11 +24,6 @@ int main()
 
     // Create a socket
     int listening = socket(AF_INET, SOCK_STREAM, 0);
-    if (listening == -1)
-    {
-        cerr << "Can't create a socket! Quitting" << endl;
-        return -1;
-    }
 
     // Bind the ip address and port to a socket
     sockaddr_in hint;
@@ -37,6 +32,13 @@ int main()
     inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr); //binding info
 
     bind(listening, (sockaddr*)&hint, sizeof(hint));
+    
+    // choose operation of socket
+    int modeNum = 0; // default socket is off & waiting for a response
+    do {
+    cout << "Enter 1 to turn on socket, else 0 to turn off socket & return to here again: ";
+    cin >> modeNum;
+    if (modeNum == 1){
 
     // Tell Winsock the socket is for listening
     listen(listening, SOMAXCONN);
@@ -95,6 +97,12 @@ int main()
 
     // Close the socket
     close(clientSocket);
+    
+    ////// relay message to destination app base on application layer info
+    } else {
+    continue;
+    }
+    } while (true);
 
     return 0;
 }
