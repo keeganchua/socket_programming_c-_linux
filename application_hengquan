@@ -37,6 +37,10 @@ int main()
     if (modeNum == 0){
         continue;
         } else if (modeNum == 1){ 
+    // choose site to send to
+    int machineCNum;
+    cout << "Enter site number to send to: ";
+    cin >> machineCNum;
         
     //	create a hint structure for the local middleware to connect with from the app
     string ipAddress;
@@ -54,11 +58,30 @@ int main()
     inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);
 
     //	connect to the local middleware from the app
-    connect(sock, (sockaddr*)&hint, sizeof(hint));
+    connect(app, (sockaddr*)&hint, sizeof(hint));
     
     //	while loop:
     char buf[4096];
     string userInput;
+    struct message 
+    {
+        message_type type;
+        char payload[4096];
+    };
+    
+    enum message_type {ADDR_INFO = 10};
+    
+    struct addr_info
+    {
+        int src_app = appNum;
+        int src_machine = machineNum;
+        int des_machine = machineCNum;
+    };
+    
+    message outgoing_message;
+    addr_info data;
+    outgoing_message.type = ADDR_INFO;
+    memcpy((void*)outgoing_message.payload, (void*)&data, sizeof(data));
 
     do {
         //		Enter lines of text
@@ -68,18 +91,14 @@ int main()
         if (userInput == "exit"){
         break;
         } else {
-/////////////////////////////////////////ADD application layer/structure before sending include appNum, machineNum, machineCNum + userInput
-        //		Send to server
-        int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
-        if (sendRes == -1)
-        {
-            cout << "Could not send to server! Whoops!\r\n";
-            continue;
-        }
+        
+        // send to server
+        send(app, outgoing_message, sizeof(outgoing_message), 0);
+        send(app, userInput.c_str(), userInput.size() + 1, 0);
 
         //		Wait for response
         memset(buf, 0, 4096);
-        int bytesReceived = recv(sock, buf, 4096, 0);
+        int bytesReceived = recv(app, buf, 4096, 0);
         if (bytesReceived == -1)
         {
             cout << "There was an error getting response from server\r\n";
