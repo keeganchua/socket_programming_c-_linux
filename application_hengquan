@@ -14,6 +14,7 @@ int main()
     // identify current site & app number 
     int appNum = 1; // current app number: 1
     int machineNum = 1; // current machine number: 1
+    int machineCNum;
 
     //	create a socket
     int app = socket(AF_INET, SOCK_STREAM, 0);
@@ -38,9 +39,16 @@ int main()
         continue;
         } else if (modeNum == 1){ 
     // choose site to send to
-    int machineCNum;
-    cout << "Enter site number to send to: ";
+    do {
+    cout << "Currently you're in application " << appNum << ", site " << machineNum << ".\nEnter site number you want to connect to: ";
     cin >> machineCNum;
+    if (machineCNum == machineNum){
+        cerr << "Error: You cannot send to the machine you're in!" << endl;
+        continue;
+    }   else {
+        break;
+    }
+    } while (true);
         
     //	create a hint structure for the local middleware to connect with from the app
     string ipAddress;
