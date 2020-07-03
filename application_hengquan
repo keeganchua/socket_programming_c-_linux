@@ -38,6 +38,7 @@ int main()
     if (modeNum == 0){
         continue;
         } else if (modeNum == 1){ 
+        
     // choose site to send to
     do {
     cout << "Currently you're in application " << appNum << ", site " << machineNum << ".\nEnter site number you want to connect to: ";
@@ -50,7 +51,7 @@ int main()
     }
     } while (true);
         
-    //	create a hint structure for the local middleware to connect with from the app
+    // create a hint structure for the local middleware to connect with from the app
     string ipAddress;
     if (machineNum == 1){
         ipAddress = "192.168.0.115";
@@ -59,16 +60,15 @@ int main()
     } else {
         cout << "This is Machine 3 please change the machineNum!" << endl;
     }
-
     sockaddr_in hint;
     hint.sin_family = AF_INET;
     hint.sin_port = htons(54000);
     inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);
 
-    //	connect to the local middleware from the app
+    // connect to the local middleware from the app
     connect(app, (sockaddr*)&hint, sizeof(hint));
     
-    //	while loop:
+    // while loop:
     char buf[4096];
     string userInput;
     struct message 
@@ -76,26 +76,21 @@ int main()
         message_type type;
         char payload[4096];
     };
-    
     enum message_type {ADDR_INFO = 10};
-    
     struct addr_info
     {
         int src_app = appNum;
         int src_machine = machineNum;
         int des_machine = machineCNum;
     };
-    
     message outgoing_message;
     addr_info data;
     outgoing_message.type = ADDR_INFO;
     memcpy((void*)outgoing_message.payload, (void*)&data, sizeof(data));
-
     do {
-        //		Enter lines of text
+        // enter lines of text
         cout << "> ";
         getline(cin, userInput);
-        
         if (userInput == "exit"){
         break;
         } else {
@@ -104,7 +99,7 @@ int main()
         send(app, outgoing_message, sizeof(outgoing_message), 0);
         send(app, userInput.c_str(), userInput.size() + 1, 0);
 
-        //		Wait for response
+        // wait for response
         memset(buf, 0, 4096);
         int bytesReceived = recv(app, buf, 4096, 0);
         if (bytesReceived == -1)
@@ -113,7 +108,7 @@ int main()
         }
         else
         {
-            //		Display response
+            // display response
             cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
         } 
         }
@@ -124,8 +119,8 @@ int main()
         }
     } while (true);
     
-    //	Close the socket
-    close(sock);
+    // close the socket
+    close(app);
 
     return 0;
 }
