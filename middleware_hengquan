@@ -22,8 +22,11 @@ int main()
         cout << "This is Machine 3 please change the machineNum!" << endl;
     }
 
-    // create a socket
+    // create a listening socket
     int listening = socket(AF_INET, SOCK_STREAM, 0);
+    
+    // create a sending socket
+    int middleware = socket(AF_INET, SOCK_STREAM, 0);
 
     // bind the ip address and port to a socket
     sockaddr_in hint;
