@@ -9,6 +9,13 @@
 
 using namespace std;
 
+int CSocket::SendTCPMessage(char* msg, int msg_size){
+    return send(socket_fd, msg, msg_size, 0);
+    }
+int CSocket::ReceiveTCPMessage(char *buffer, int buffer_size){
+    return recv(socket_fd, buffer, buffer_size, 0);
+    }
+    
 int main()
 {
     // identify current site & app number 
@@ -96,7 +103,7 @@ int main()
         } else {
         
         // send to server
-        send(app, outgoing_message, sizeof(outgoing_message), 0);
+        my_socket->SendTCPMessage((char*)&outgoing_message, sizeof(outgoing_message));
         send(app, userInput.c_str(), userInput.size() + 1, 0);
 
         // wait for response
