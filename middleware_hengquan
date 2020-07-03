@@ -11,8 +11,8 @@ using namespace std;
 
 int main()
 {
-    // Differentiate machines (available machines: 1, 2 & 3)
-    int machineNum = 1; // Current machine: 1
+    // differentiate machines (available machines: 1, 2 & 3)
+    int machineNum = 1; // current machine: 1
     string ipAddress;
     if (machineNum == 1){
         ipAddress = "192.168.0.115";
@@ -22,15 +22,14 @@ int main()
         cout << "This is Machine 3 please change the machineNum!" << endl;
     }
 
-    // Create a socket
+    // create a socket
     int listening = socket(AF_INET, SOCK_STREAM, 0);
 
-    // Bind the ip address and port to a socket
+    // bind the ip address and port to a socket
     sockaddr_in hint;
     hint.sin_family = AF_INET;
     hint.sin_port = htons(54000);
     inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr); //binding info
-
     bind(listening, (sockaddr*)&hint, sizeof(hint));
     
     // choose operation of socket
@@ -40,17 +39,17 @@ int main()
     cin >> modeNum;
     if (modeNum == 1){
 
-    // Tell Winsock the socket is for listening
+    // tell Winsock the socket is for listening
     listen(listening, SOMAXCONN);
 
-    // Wait for a connection
+    // wait for a connection
     sockaddr_in client;
     socklen_t clientSize = sizeof(client);
 
     int clientSocket = accept(listening, (sockaddr*)&client, &clientSize);
 
-    char host[NI_MAXHOST];      // Client's remote name
-    char service[NI_MAXSERV];   // Service (i.e. port) the client is connect on
+    char host[NI_MAXHOST];      // client's remote name
+    char service[NI_MAXSERV];   // service (i.e. port) the client is connect on
 
     memset(host, 0, NI_MAXHOST); // same as memset(host, 0, NI_MAXHOST);
     memset(service, 0, NI_MAXSERV);
@@ -65,7 +64,7 @@ int main()
         cout << host << " connected on port " << ntohs(client.sin_port) << endl;
     }
 
-    // Close listening socket
+    // close listening socket
     close(listening);
 
     // While loop: accept and echo message back to client
