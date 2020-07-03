@@ -9,6 +9,13 @@
 
 using namespace std;
 
+int CSocket::SendTCPMessage(char* msg, int msg_size){
+    return send(socket_fd, msg, msg_size, 0);
+    }
+int CSocket::ReceiveTCPMessage(char *buffer, int buffer_size){
+    return recv(socket_fd, buffer, buffer_size, 0);
+    }
+
 int main()
 {
     // differentiate machines (available machines: 1, 2 & 3)
@@ -76,8 +83,11 @@ int main()
     while (true)
     {
         memset(buf, 0, 4096);
+        
+        message incoming_message;
 
         // Wait for client to send data
+        my_socket->ReceiveTCPMessage((char*)&incoming_message, sizeof(incoming_message));
         int bytesReceived = recv(clientSocket, buf, 4096, 0);
         if (bytesReceived == -1)
         {
