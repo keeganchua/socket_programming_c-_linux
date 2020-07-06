@@ -9,66 +9,47 @@
 
 using namespace std;
     
-int main()
-{
-    // identify current site & app number 
-    int appNum = 1; // current app number: 1
-    int machineNum = 1; // current machine number: 1
-    int machineCNum;
+int main(){
+    int appNum = 1; 
+    int machineNum = 1; 
 
-    //	create a socket
     int app = socket(AF_INET, SOCK_STREAM, 0);
     
-    // bind socket to a port based on app number
     sockaddr_in appAddr;
     appAddr.sin_family = AF_INET;
-    if (appNum == 1){
-        appAddr.sin_port = htons(1234);
-    } else {
-        appAddr.sin_port = htons(5678);
-    }
+    if (appNum == 1){appAddr.sin_port = htons(1234);} 
+    else {appAddr.sin_port = htons(5678);}
     inet_pton(AF_INET, "127.0.0.1", &appAddr.sin_addr);
     bind(app, (sockaddr*)&appAddr, sizeof(appAddr));
     
-    // choose operation of socket
-    int modeNum = 0; // default socket is off & waiting for a response
-    do {
-    cout << "Enter 1 to send a message, 2 to turn on socket, else 0 to turn off socket & return to here again: ";
+    int modeNum = 0; 
+    do {cout << "Enter 1 to send a message, 2 to turn on socket, else 0 to turn off socket & return to here again: ";
     cin >> modeNum;
-    if (modeNum == 0){
-        continue;
-        } else if (modeNum == 1){ 
+    if (modeNum == 0){continue;} 
+    else if (modeNum == 1){ 
         
-    // choose site to send to
-    do {
+    do {int machineCNum;
     cout << "Currently you're in application " << appNum << ", site " << machineNum << ".\nEnter site number you want to connect to: ";
     cin >> machineCNum;
-    if (machineCNum == machineNum){
-        cerr << "Error: You cannot send to the machine you're in!" << endl;
-        continue;
-    }   else {
-        break;
-    }
+    if (machineCNum == machineNum){cerr << "Error: You cannot send to the machine you're in!" << endl;
+        continue;}   
+        else {break;}
     } while (true);
         
-    // create a hint structure for the local middleware to connect with from the app
     string ipAddress;
     if (machineNum == 1){
         ipAddress = "192.168.0.115";
     } else if (machineNum == 2){
         ipAddress = "192.168.0.114";
-    } else {
-        cout << "This is Machine 3 please change the machineNum!" << endl;
-    }
+    } else { } //machine 3 IP 
+    
     sockaddr_in hint;
     hint.sin_family = AF_INET;
-    hint.sin_port = htons(54000);
+    hint.sin_port = htons(6789);
     inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);
 
-    // connect to the local middleware from the app
     connect(app, (sockaddr*)&hint, sizeof(hint));
     
-    // while loop:
     char buf[4096];
     string userInput;
     int converted_number = htonl(appNum);
@@ -78,31 +59,11 @@ int main()
     int converted_number_machineC = htonl(machineCNum);
     write(app, &converted_number_machineC, sizeof(converted_number_machineC));
    
-    do {
-        // enter lines of text
         cout << "> ";
         getline(cin, userInput);
-        if (userInput == "exit"){
-        break;
-        } else {
         
-        // send to server
         send(app, userInput.c_str(), userInput.size() + 1, 0);
-
-        // wait for response
-        memset(buf, 0, 4096);
-        int bytesReceived = recv(app, buf, 4096, 0);
-        if (bytesReceived == -1)
-        {
-            cout << "There was an error getting response from server\r\n";
-        }
-        else
-        {
-            // display response
-            cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
-        } 
-        }
-    } while(true);
+        
         continue;
         } else if (modeNum == 2){
         //LISTEN
