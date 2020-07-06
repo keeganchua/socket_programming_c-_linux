@@ -9,13 +9,6 @@
 
 using namespace std;
 
-int CSocket::SendTCPMessage(char* msg, int msg_size){
-    return send(socket_fd, msg, msg_size, 0);
-    }
-int CSocket::ReceiveTCPMessage(char *buffer, int buffer_size){
-    return recv(socket_fd, buffer, buffer_size, 0);
-    }
-
 int main()
 {
     // differentiate machines (available machines: 1, 2 & 3)
@@ -80,28 +73,22 @@ int main()
 
     // While loop: accept and echo message back to client
     char buf[4096];
-    struct message 
-    {
-        message_type type;
-        char payload[4096];
-    };
-    enum message_type {ADDR_INFO = 10};
-    struct addr_info
-    {
-        int src_app = appNum;
-        int src_machine = machineNum;
-        int des_machine = machineCNum;
-    };
-    message incoming_message;
-    addr_info data;
+    
+    read(clientSocket,&appNum, sizeof(appNum));
+    int convert_back = ntohl(appNum);
+    cout << convert_back <<endl;
+    read(clientSocket,&machineNum, sizeof(machineNum));
+    int convert_back_machine = ntohl(machineNum);
+    cout << convert_back_machine <<endl;
+    read(clientSocket,&machineCNum, sizeof(machineCNum));
+    int convert_back_machineC = ntohl(machineCNum);
+    cout << convert_back_machineC <<endl;
     
     while (true)
     {
         memset(buf, 0, 4096);
         
         // wait for client to send data
-        my_socket->ReceiveTCPMessage((char*)&incoming_message, sizeof(incoming_message));
-        addr_info* data = (addr_info*)&incoming_message.payload;
         int bytesReceived = recv(clientSocket, buf, 4096, 0);
         if (bytesReceived == -1)
         {
