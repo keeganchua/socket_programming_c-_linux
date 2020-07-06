@@ -9,41 +9,28 @@
 
 using namespace std;
 
-int main()
-{
-    // differentiate machines (available machines: 1, 2 & 3)
-    int machineNum = 1; // current machine: 1
-    int srcappNum, srcmachineNum, desmachineNum;
+int main(){
+    int machineNum = 1; 
     string ipAddress;
-    if (machineNum == 1){
-        ipAddress = "192.168.0.115";
-    } else if (machineNum == 2){
-        ipAddress = "192.168.0.114";
-    } else {
-        cout << "This is Machine 3 please change the machineNum!" << endl;
-    }
+    if (machineNum == 1){ipAddress = "192.168.0.115";} 
+    else if (machineNum == 2){ipAddress = "192.168.0.114";}
+    else { } //machine 3 IP
 
-    // create a listening socket
-    int listening = socket(AF_INET, SOCK_STREAM, 0);
+    int machineSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-    // bind the ip address and port to a socket
     sockaddr_in hint;
     hint.sin_family = AF_INET;
-    hint.sin_port = htons(54000);
-    inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr); //binding info
-    bind(listening, (sockaddr*)&hint, sizeof(hint));
-    
-    // choose operation of socket
-    int modeNum = 0; // default socket is off & waiting for a response
-    do {
-    cout << "Enter 1 to turn on socket, else 0 to turn off socket & return to here again: ";
+    hint.sin_port = htons(6789);
+    inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr); 
+    bind(machineSocket, (sockaddr*)&hint, sizeof(hint));
+   
+    int modeNum = 0; 
+    do {cout << "Enter 1 to turn on socket, else 0 to turn off socket & return to here again: ";
     cin >> modeNum;
     if (modeNum == 1){
 
-    // tell Winsock the socket is for listening
-    listen(listening, SOMAXCONN);
+    listen(machineSocket, SOMAXCONN);
 
-    // wait for a connection
     sockaddr_in client;
     socklen_t clientSize = sizeof(client);
 
@@ -51,26 +38,16 @@ int main()
 
     char host[NI_MAXHOST];      // client's remote name
     char service[NI_MAXSERV];   // service (i.e. port) the client is connect on
-
     memset(host, 0, NI_MAXHOST); // same as memset(host, 0, NI_MAXHOST);
     memset(service, 0, NI_MAXSERV);
-
     if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
-    {
-        cout << host << " connected on port " << service << endl;
-    }
-    else
-    {
-        inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
-        cout << host << " connected on port " << ntohs(client.sin_port) << endl;
-    }
+    {cout << host << " connected on port " << service << endl;}
+    else{inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
+        cout << host << " connected on port " << ntohs(client.sin_port) << endl;}
+    close(listening);
 
-    // close listening socket
-    //close(listening);
-
-    // While loop: accept and echo message back to client
     char buf[4096];
-    
+    int srcappNum, srcmachineNum, desmachineNum;
     read(clientSocket,&srcappNum, sizeof(srcappNum));
     int srcappNum_cb = ntohl(srcappNum);
     cout << srcappNum_cb <<endl;
@@ -80,63 +57,19 @@ int main()
     read(clientSocket,&desmachineNum, sizeof(desmachineNum));
     int desmachineNum_cb = ntohl(desmachineNum);
     cout << desmachineNum_cb <<endl;
+        
+    memset(buf, 0, 4096);
+     
+    int bytesReceived = recv(clientSocket, buf, 4096, 0);
+
+    if (bytesReceived == 0){cout << "Client disconnected " << endl;}
+
+    cout << string(buf, 0, bytesReceived) << endl;
     
-    while (true)
-    {
-        memset(buf, 0, 4096);
+    //send(clientSocket, buf, bytesReceived + 1, 0);   // Echo message back to client
         
-        // wait for client to send data
-        int bytesReceived = recv(clientSocket, buf, 4096, 0);
-        if (bytesReceived == -1)
-        {
-            cerr << "Error in recv(). Quitting" << endl;
-            break;
-        }
-
-        if (bytesReceived == 0)
-        {
-            cout << "Client disconnected " << endl;
-            break;
-        }
-
-        cout << string(buf, 0, bytesReceived) << endl;
-
-        // Echo message back to client
-        send(clientSocket, buf, bytesReceived + 1, 0);
-        
-        if(machineNum != desmachineNum_cb){
-        //connect to machine and send
-        // create a new hint structure 
-        string newipAddress;
-        if (desmachineNum_cb == 1){
-            newipAddress = "192.168.0.115";
-        } else if (desmachineNum_cb == 2){
-            newipAddress = "192.168.0.114";
-        } else {
-            cout << "This is Machine 3 please change the machineNum!" << endl;
-        }
-        sockaddr_in newhint;
-        newhint.sin_family = AF_INET;
-        newhint.sin_port = htons(54000);
-        inet_pton(AF_INET, newipAddress.c_str(), &newhint.sin_addr);
-
-        // connect to the local middleware from the app
-        connect(listening, (sockaddr*)&newhint, sizeof(newhint));  
-        int converted_number = htonl(srcappNum_cb);
-        write(listening, &converted_number, sizeof(converted_number));
-        int converted_number_machine = htonl(srcmachineNum_cb);
-        write(listening, &converted_number_machine, sizeof(converted_number_machine));
-        int converted_number_machineC = htonl(desmachineCNum_cb);
-        write(listening, &converted_number_machineC, sizeof(converted_number_machineC));
-        
-        send(listening, buf, bytesReceived + 1, 0);
-        
-        }
-    }
-
-    // Close the socket
     close(clientSocket);
-    
+    // based on desmachineNum_cb if not reach pls connect this middleware to that middleware
     
     } else {
     continue;
