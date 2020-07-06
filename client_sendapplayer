@@ -8,20 +8,11 @@
 #include <string>
 
 using namespace std;
-
-int CSocket::SendTCPMessage(char* msg, int msg_size){
-    return send(socket_fd, msg, msg_size, 0);
-    }
-int CSocket::ReceiveTCPMessage(char *buffer, int buffer_size){
-    return recv(socket_fd, buffer, buffer_size, 0);
-    }
     
 int main()
 {
 
-    int appNum = 1; // current app number: 1
-    int machineNum = 1; // current machine number: 1
-    int machineCNum = 2;
+    int appNum = 1; 
     
     //	Create a socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -49,23 +40,9 @@ int main()
     //	While loop:
     char buf[4096];
     string userInput;
-    struct message 
-    {
-        message_type type;
-        char payload[4096];
-    };
-    enum message_type {ADDR_INFO = 10};
-    struct addr_info
-    {
-        int src_app = appNum;
-        int src_machine = machineNum;
-        int des_machine = machineCNum;
-    };
-    message outgoing_message;
-    addr_info data;
-    outgoing_message.type = ADDR_INFO;
-    memcpy((void*)outgoing_message.payload, (void*)&data, sizeof(data));
-
+    
+   int converted_number = htonl(appNum);
+   write(sock, &converted_number, sizeof(converted_number));
 
     do {
         //		Enter lines of text
@@ -73,7 +50,6 @@ int main()
         getline(cin, userInput);
 
         //		Send to server
-        my_socket->SendTCPMessage((char*)&outgoing_message, sizeof(outgoing_message));
         int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
         if (sendRes == -1)
         {
