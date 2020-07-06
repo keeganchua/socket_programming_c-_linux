@@ -13,7 +13,7 @@ int main()
 {
     // differentiate machines (available machines: 1, 2 & 3)
     int machineNum = 1; // current machine: 1
-    int appNum, machineCNum;
+    int srcappNum, srcmachineNum, desmachineNum;
     string ipAddress;
     if (machineNum == 1){
         ipAddress = "192.168.0.115";
@@ -25,9 +25,6 @@ int main()
 
     // create a listening socket
     int listening = socket(AF_INET, SOCK_STREAM, 0);
-    
-    // create a sending socket
-    int middleware = socket(AF_INET, SOCK_STREAM, 0);
 
     // bind the ip address and port to a socket
     sockaddr_in hint;
@@ -69,20 +66,20 @@ int main()
     }
 
     // close listening socket
-    close(listening);
+    //close(listening);
 
     // While loop: accept and echo message back to client
     char buf[4096];
     
-    read(clientSocket,&appNum, sizeof(appNum));
-    int convert_back = ntohl(appNum);
-    cout << convert_back <<endl;
-    read(clientSocket,&machineNum, sizeof(machineNum));
-    int convert_back_machine = ntohl(machineNum);
-    cout << convert_back_machine <<endl;
-    read(clientSocket,&machineCNum, sizeof(machineCNum));
-    int convert_back_machineC = ntohl(machineCNum);
-    cout << convert_back_machineC <<endl;
+    read(clientSocket,&srcappNum, sizeof(srcappNum));
+    int srcappNum_cb = ntohl(srcappNum);
+    cout << srcappNum_cb <<endl;
+    read(clientSocket,&srcmachineNum, sizeof(srcmachineNum));
+    int srcmachineNum_cb = ntohl(srcmachineNum);
+    cout << srcmachineNum_cb <<endl;
+    read(clientSocket,&desmachineNum, sizeof(desmachineNum));
+    int desmachineNum_cb = ntohl(desmachineNum);
+    cout << desmachineNum_cb <<endl;
     
     while (true)
     {
@@ -106,12 +103,41 @@ int main()
 
         // Echo message back to client
         send(clientSocket, buf, bytesReceived + 1, 0);
+        
+        if(machineNum != desmachineNum_cb){
+        //connect to machine and send
+        // create a new hint structure 
+        string newipAddress;
+        if (desmachineNum_cb == 1){
+            newipAddress = "192.168.0.115";
+        } else if (desmachineNum_cb == 2){
+            newipAddress = "192.168.0.114";
+        } else {
+            cout << "This is Machine 3 please change the machineNum!" << endl;
+        }
+        sockaddr_in newhint;
+        newhint.sin_family = AF_INET;
+        newhint.sin_port = htons(54000);
+        inet_pton(AF_INET, newipAddress.c_str(), &newhint.sin_addr);
+
+        // connect to the local middleware from the app
+        connect(listening, (sockaddr*)&newhint, sizeof(newhint));  
+        int converted_number = htonl(srcappNum_cb);
+        write(listening, &converted_number, sizeof(converted_number));
+        int converted_number_machine = htonl(srcmachineNum_cb);
+        write(listening, &converted_number_machine, sizeof(converted_number_machine));
+        int converted_number_machineC = htonl(desmachineCNum_cb);
+        write(listening, &converted_number_machineC, sizeof(converted_number_machineC));
+        
+        send(listening, buf, bytesReceived + 1, 0);
+        
+        }
     }
 
     // Close the socket
     close(clientSocket);
     
-    // relay message to destination app base on application layer info
+    
     } else {
     continue;
     }
