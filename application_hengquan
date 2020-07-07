@@ -58,12 +58,12 @@ int main(){
     write(app, &converted_number_machine, sizeof(converted_number_machine));
     int converted_number_machineC = htonl(machineCNum);
     write(app, &converted_number_machineC, sizeof(converted_number_machineC));
-   
+    
+    do {
         cout << "> ";
         getline(cin, userInput);
-        
         send(app, userInput.c_str(), userInput.size() + 1, 0);
-        
+        } while (true);
         continue;
         } else if (modeNum == 2){
         //LISTEN
