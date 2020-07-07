@@ -66,7 +66,41 @@ int main(){
         } while (true);
         continue;
         } else if (modeNum == 2){
-        //LISTEN
+        listen(app, SOMAXCONN);
+        
+        sockaddr_in client;
+        socklen_t clientSize = sizeof(client);
+
+        int clientSocket = accept(app, (sockaddr*)&client, &clientSize);
+
+        char host[NI_MAXHOST];      // client's remote name
+        char service[NI_MAXSERV];   // service (i.e. port) the client is connect on
+        memset(host, 0, NI_MAXHOST); // same as memset(host, 0, NI_MAXHOST);
+        memset(service, 0, NI_MAXSERV);
+        if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
+        {cout << host << " connected on port " << service << endl;}
+        else{inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
+        cout << host << " connected on port " << ntohs(client.sin_port) << endl;}
+        close(app);
+
+        char buf[4096];
+        int srcappNum, srcmachineNum, desmachineNum;
+        read(clientSocket,&srcappNum, sizeof(srcappNum));
+        int srcappNum_cb = ntohl(srcappNum);
+        cout << srcappNum_cb <<endl;
+        read(clientSocket,&srcmachineNum, sizeof(srcmachineNum));
+        int srcmachineNum_cb = ntohl(srcmachineNum);
+        cout << srcmachineNum_cb <<endl;
+        read(clientSocket,&desmachineNum, sizeof(desmachineNum));
+        int desmachineNum_cb = ntohl(desmachineNum);
+        cout << desmachineNum_cb <<endl;
+        
+        while (true){
+        memset(buf, 0, 4096);  
+        int bytesReceived = recv(clientSocket, buf, 4096, 0);
+        if (bytesReceived == 0){cout << "Client disconnected " << endl;}
+        cout << string(buf, 0, bytesReceived) << endl;
+        }
         }
     } while (true);
     
