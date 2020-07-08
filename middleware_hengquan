@@ -58,12 +58,47 @@ int main(){
     int desmachineNum_cb = ntohl(desmachineNum);
     cout << desmachineNum_cb <<endl;
     //can connect to destination middleware here too and then relay message in while loop below
+    if (machineNum != desmachineNum_cb){
+    int machineSocket_relay = socket(AF_INET, SOCK_STREAM, 0);
+
+    //sockaddr_in hint; // maybe no need this can try
+    //hint.sin_family = AF_INET; // maybe no need this too
+    //hint.sin_port = htons(6789); // this too
+    //inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr); //this too
+    bind(machineSocket_relay, (sockaddr*)&hint, sizeof(hint));
+    
+    string ipAddress_relay;
+    if (desmachineNum_cb == 1){ipAddress_relay = "192.168.0.115";} 
+    else if (desmachineNum_cb == 2){ipAddress_relay = "192.168.0.114";}
+    else { } //desmachineNum_cb 3 IP
+    
+    sockaddr_in hint_relay;
+    hint_relay.sin_family = AF_INET;
+    hint_relay.sin_port = htons(6789);
+    inet_pton(AF_INET, ipAddress_relay.c_str(), &hint_relay.sin_addr);
+    
+    connect(machineSocket_relay, (sockaddr*)&hint_relay, sizeof(hint_relay));
+    
+    //char buf[4096]; // might have to change this
+    int converted_number = htonl(srcappNum_cb);
+    write(machineSocket_relay, &converted_number, sizeof(converted_number));
+    int converted_number_machine = htonl(srcmachineNum_cb);
+    write(machineSocket_relay, &converted_number_machine, sizeof(converted_number_machine));
+    int converted_number_machineC = htonl(desmachineNum_cb);
+    write(machineSocket_relay, &converted_number_machineC, sizeof(converted_number_machineC));
+    //change below put this send in a while or izzit already in a while?
+    //send(machineSocket_relay, buf, bytesReceived + 1, 0); //check this
+    } 
+    
     while (true){
     memset(buf, 0, 4096);  
     int bytesReceived = recv(clientSocket, buf, 4096, 0);
     if (bytesReceived == 0){cout << "Client disconnected " << endl;
     break;}
     cout << string(buf, 0, bytesReceived) << endl;
+    if (machineNum != desmachineNum_cb){
+    send(machineSocket_relay, buf, bytesReceived + 1, 0);
+    } //IMPORTANT LINE
     //send(clientSocket, buf, bytesReceived + 1, 0);   // Echo message back to client
     //try to connect to relay message to destination middleware set the condition if machineNum != desmachineNum_cb > relay message
     //if machineNum == desmachineNum_cb > relay message to correct application based on srcappNum_cb 
