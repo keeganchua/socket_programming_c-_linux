@@ -1,0 +1,157 @@
+    #include <iostream>
+	#include <sys/types.h>
+	#include <unistd.h>
+	#include <sys/socket.h>
+	#include <netdb.h>
+	#include <arpa/inet.h>
+	#include <string.h>
+	#include <string>
+
+	using namespace std;
+
+	int main()
+	{
+
+    int machineNum = 1;
+	int appNum, desmachineNum;
+	int modeNum = 1; //1 is listening, 2 is off
+	string ipAddress;
+
+	if (machineNum == 1){
+        ipAddress = "192.168.0.115";
+	} else if (machineNum == 2){
+        ipAddress = "192.168.0.114";
+	} else {
+        ipAddress = "192.168.0.113";
+	}
+
+	// Create a socket
+	int listening = socket(AF_INET, SOCK_STREAM, 0);
+
+	// Bind the ip address and port to a socket
+	sockaddr_in hint;
+	hint.sin_family = AF_INET;
+	hint.sin_port = htons(5678);
+	inet_pton(AF_INET, ipAddress.c_str(),&hint.sin_addr);
+
+	bind(listening, (sockaddr*)&hint, sizeof(hint));
+
+	if (modeNum == 1){
+        cout << "listening & sending mode" << endl;
+	// Tell Winsock the socket is for listening
+
+	do {
+
+	listen(listening, SOMAXCONN);
+
+	// Wait for a connection
+	sockaddr_in client;
+	socklen_t clientSize = sizeof(client);
+
+	int clientSocket = accept(listening, (sockaddr*)&client, &clientSize);
+
+	char host[NI_MAXHOST]; // Client's remote name
+	char service[NI_MAXSERV]; // Service (i.e. port) the client is connect on
+
+	memset(host, 0, NI_MAXHOST); // same as memset(host, 0, NI_MAXHOST);
+	memset(service, 0, NI_MAXSERV);
+
+	if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
+	{
+	cout << host << " connected on port " << service << endl;
+	}
+	else
+	{
+	inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
+	cout << host << " connected on port " << ntohs(client.sin_port) << endl;
+	}
+
+
+	// While loop: accept and echo message back to client
+	char buf[4096];
+
+	read(clientSocket,&appNum, sizeof(appNum));
+	int convert_back = ntohl(appNum);
+	cout << convert_back <<endl;
+	read(clientSocket,&machineNum, sizeof(machineNum));
+	int convert_back_machine = ntohl(machineNum);
+	cout << convert_back_machine <<endl;
+	//read(clientSocket,&desmachineNum, sizeof(desmachineNum));
+	//int desmachineNum_cb = ntohl(desmachineNum);
+	//cout << desmachineNum_cb <<endl;
+
+	do {
+	memset(buf, 0, 4096);
+
+	// Wait for client to send data
+	int bytesReceived = recv(clientSocket, buf, 4096, 0);
+	if (bytesReceived == -1)
+	{
+	cerr << "Error in recv(). Quitting" << endl;
+	break;
+	}
+
+	if (bytesReceived == 0)
+	{
+	cout << "Client disconnected " << endl;
+	break;
+	}
+	if (bytesReceived >= 1){
+	cout << string(buf, 0, bytesReceived) << endl;
+	read(clientSocket,&desmachineNum, sizeof(desmachineNum));
+
+    break;
+    }
+	} while (true);
+
+    int desmachineNum_cb = ntohl(desmachineNum);
+    if (desmachineNum_cb != convert_back_machine){
+        cout << "relaying message to site " << desmachineNum_cb << endl;
+
+    // Create a hint structure for the server we're connecting with
+    string desipAddress;
+
+    if (desmachineNum_cb == 1){
+        desipAddress = "192.168.0.115";
+	} else if (desmachineNum_cb == 2){
+        desipAddress = "192.168.0.114";
+	} else {
+        desipAddress = "192.168.0.113";
+	}
+
+	sockaddr_in deshint;
+	deshint.sin_family = AF_INET;
+	deshint.sin_port = htons(5678);
+	inet_pton(AF_INET, desipAddress.c_str(), &deshint.sin_addr);
+
+	// Connect to the server on the socket
+	int connectRes = connect(listening, (sockaddr*)&deshint, sizeof(deshint));
+	if (connectRes == -1)
+	{
+	return 1;
+	}
+
+	int converted_number = htonl(convert_back);
+	write(listening, &converted_number, sizeof(converted_number));
+	int converted_number_machine = htonl(convert_back_machine);
+	write(listening, &converted_number_machine, sizeof(converted_number_machine));
+
+    }
+
+	cout << buf <<endl;
+
+
+	} while (true);
+
+	// Close the socket
+	//close(clientSocket);
+
+	} else if (modeNum == 2){
+        cout << "middleware is off" << endl;
+	}
+
+	return 0;
+	}
+
+	// Echo message back to client
+	//send(clientSocket, buf, bytesReceived + 1, 0);
