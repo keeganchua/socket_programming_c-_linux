@@ -105,8 +105,15 @@
 	} while (true);
 
     int desmachineNum_cb = ntohl(desmachineNum);
+    cout << desmachineNum_cb << endl; // destination number
+    cout << convert_back_machine << endl; //machine number
     if (desmachineNum_cb != convert_back_machine){
         cout << "relaying message to site " << desmachineNum_cb << endl;
+
+    // Create a socket
+	int listening_relay = socket(AF_INET, SOCK_STREAM, 0);
+
+	bind(listening_relay, (sockaddr*)&hint, sizeof(hint));
 
     // Create a hint structure for the server we're connecting with
     string desipAddress;
@@ -125,16 +132,25 @@
 	inet_pton(AF_INET, desipAddress.c_str(), &deshint.sin_addr);
 
 	// Connect to the server on the socket
-	int connectRes = connect(listening, (sockaddr*)&deshint, sizeof(deshint));
+	int connectRes = connect(listening_relay, (sockaddr*)&deshint, sizeof(deshint));
 	if (connectRes == -1)
 	{
 	return 1;
 	}
 
 	int converted_number = htonl(convert_back);
-	write(listening, &converted_number, sizeof(converted_number));
+	write(listening_relay, &converted_number, sizeof(converted_number));
 	int converted_number_machine = htonl(convert_back_machine);
-	write(listening, &converted_number_machine, sizeof(converted_number_machine));
+	write(listening_relay, &converted_number_machine, sizeof(converted_number_machine));
+
+	do {
+	int sendRelay = send(listening_relay, buf, sizeof(buf) + 1, 0);
+	if (sendRelay >= 1){
+	int converted_number_Cmachine = htonl(desmachineNum_cb);
+	write(listening_relay, &converted_number_Cmachine, sizeof(converted_number_Cmachine));
+	break;
+	}
+	} while (true);
 
     }
 
