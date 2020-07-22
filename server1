@@ -12,14 +12,14 @@
 	int main()
 	{
 
-    int machineNum = 1;
-	int appNum, desmachineNum;
+    int machineNumsite = 1;
+	int appNum, machineNum, desmachineNum;
 	int modeNum = 1; //1 is listening, 2 is off
 	string ipAddress;
 
-	if (machineNum == 1){
+	if (machineNumsite == 1){
         ipAddress = "192.168.0.115";
-	} else if (machineNum == 2){
+	} else if (machineNumsite == 2){
         ipAddress = "192.168.0.114";
 	} else {
         ipAddress = "192.168.0.113";
@@ -76,9 +76,6 @@
 	read(clientSocket,&machineNum, sizeof(machineNum));
 	int convert_back_machine = ntohl(machineNum);
 	cout << convert_back_machine <<endl;
-	//read(clientSocket,&desmachineNum, sizeof(desmachineNum));
-	//int desmachineNum_cb = ntohl(desmachineNum);
-	//cout << desmachineNum_cb <<endl;
 
 	do {
 	memset(buf, 0, 4096);
@@ -105,9 +102,9 @@
 	} while (true);
 
     int desmachineNum_cb = ntohl(desmachineNum);
-    cout << desmachineNum_cb << endl; // destination number
-    cout << convert_back_machine << endl; //machine number
-    if (desmachineNum_cb != convert_back_machine){
+    //cout << desmachineNum_cb << endl; // destination number
+    //cout << convert_back_machine << endl; //machine number
+    if (desmachineNum_cb != machineNumsite){
         cout << "relaying message to site " << desmachineNum_cb << endl;
 
     // Create a socket
@@ -144,12 +141,10 @@
 	write(listening_relay, &converted_number_machine, sizeof(converted_number_machine));
 
 	do {
-	int sendRelay = send(listening_relay, buf, sizeof(buf) + 1, 0);
-	if (sendRelay >= 1){
+	send(listening_relay, buf, sizeof(buf) + 1, 0);
 	int converted_number_Cmachine = htonl(desmachineNum_cb);
 	write(listening_relay, &converted_number_Cmachine, sizeof(converted_number_Cmachine));
 	break;
-	}
 	} while (true);
 
     }
