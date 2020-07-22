@@ -15,7 +15,7 @@ int main()
     int machineNumsite = 1;
 	int appNum, machineNum, desmachineNum;
 	int modeNum = 1; //1 is listening, 2 is off
-    
+
 	string ipAddress;
 
 	if (machineNumsite == 1){
@@ -92,10 +92,11 @@ int main()
 
             break;
             }
-            
+
 	    } while (true);
 
     int desmachineNum_cb = ntohl(desmachineNum);
+
     if (machineNumsite == convert_back_machine){
         cout << "relaying message to site " << desmachineNum_cb << endl;
 
@@ -118,10 +119,11 @@ int main()
 	    deshint.sin_port = htons(5678);
 	    inet_pton(AF_INET, desipAddress.c_str(), &deshint.sin_addr);
 
+	    do {
 	    int connectRes = connect(listening_relay, (sockaddr*)&deshint, sizeof(deshint));
 	    if (connectRes == -1)
 	        {
-	            return 1;
+               continue;
 	        }
 
 	    int converted_number = htonl(convert_back);
@@ -136,10 +138,15 @@ int main()
                 write(listening_relay, &converted_number_Cmachine, sizeof(converted_number_Cmachine));
 	            break;
 	            }
-                
+
 	        } while (true);
+        if (connectRes >=0) {
+	         break;
+	        }
+        } while (true);
 
        }
+
 
     if (machineNumsite != convert_back_machine){
         cout << "relaying message to application " << convert_back << endl;
@@ -167,10 +174,12 @@ int main()
 	}
 	inet_pton(AF_INET, desipAddress_app.c_str(), &deshint_app.sin_addr);
 
+	do {
+
 	int connectRes_app = connect(listening_relay_app, (sockaddr*)&deshint_app, sizeof(deshint_app));
 	if (connectRes_app == -1)
 	    {
-	        return 1;
+            continue;
 	    }
 
 	int converted_number_app = htonl(convert_back);
@@ -184,6 +193,11 @@ int main()
 	        break;
 	    }
 	    } while (true);
+
+    if (connectRes_app >=0){
+        break;
+    }
+    } while (true);
 
     }
 
