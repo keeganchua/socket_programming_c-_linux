@@ -102,9 +102,7 @@
 	} while (true);
 
     int desmachineNum_cb = ntohl(desmachineNum);
-    //cout << desmachineNum_cb << endl; // destination number
-    //cout << convert_back_machine << endl; //machine number
-    if (desmachineNum_cb != machineNumsite){
+    if (machineNumsite == convert_back_machine){
         cout << "relaying message to site " << desmachineNum_cb << endl;
 
     // Create a socket
@@ -141,15 +139,68 @@
 	write(listening_relay, &converted_number_machine, sizeof(converted_number_machine));
 
 	do {
-	send(listening_relay, buf, sizeof(buf) + 1, 0);
+	int sendRelay = send(listening_relay, buf, sizeof(buf) + 1, 0);
+	if (sendRelay >=1){
 	int converted_number_Cmachine = htonl(desmachineNum_cb);
-	write(listening_relay, &converted_number_Cmachine, sizeof(converted_number_Cmachine));
+    write(listening_relay, &converted_number_Cmachine, sizeof(converted_number_Cmachine));
 	break;
+	}
 	} while (true);
 
     }
 
-	cout << buf <<endl;
+    if (machineNumsite != convert_back_machine){
+        cout << "relaying message to application " << convert_back << endl;
+
+    // Create a socket
+	int listening_relay_app = socket(AF_INET, SOCK_STREAM, 0);
+
+	bind(listening_relay_app, (sockaddr*)&hint, sizeof(hint));
+
+    // Create a hint structure for the server we're connecting with
+    string desipAddress_app;
+
+    if (machineNumsite == 1){
+        desipAddress_app = "192.168.0.115";
+	} else if (machineNumsite == 2){
+        desipAddress_app = "192.168.0.114";
+	} else {
+        desipAddress_app = "192.168.0.113";
+	}
+
+	sockaddr_in deshint_app;
+	deshint_app.sin_family = AF_INET;
+	if (convert_back == 1){
+	deshint_app.sin_port = htons(1234);
+	} else {
+		deshint_app.sin_port = htons(2345);
+	}
+	inet_pton(AF_INET, desipAddress_app.c_str(), &deshint_app.sin_addr);
+
+	// Connect to the server on the socket
+	int connectRes_app = connect(listening_relay_app, (sockaddr*)&deshint_app, sizeof(deshint_app));
+	if (connectRes_app == -1)
+	{
+	return 1;
+	}
+
+	int converted_number_app = htonl(convert_back);
+	write(listening_relay_app, &converted_number_app, sizeof(converted_number_app));
+	int converted_number_machine_app = htonl(convert_back_machine);
+	write(listening_relay_app, &converted_number_machine_app, sizeof(converted_number_machine_app));
+
+	do {
+	int sendRelay_app = send(listening_relay_app, buf, sizeof(buf) + 1, 0);
+	if (sendRelay_app >=1){
+	//int converted_number_Cmachine = htonl(desmachineNum_cb);
+    //write(listening_relay, &converted_number_Cmachine, sizeof(converted_number_Cmachine));
+	break;
+	}
+	} while (true);
+
+    }
+
+	//cout << buf <<endl;
 
 
 	} while (true);
